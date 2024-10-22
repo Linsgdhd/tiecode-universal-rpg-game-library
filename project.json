@@ -1,0 +1,13 @@
+{
+   "project_name": "通用游戏类库",
+   "project_kind": 0,
+   "classification": "结绳安卓工程",
+   "classification_id": "cn.tiecode.android",
+   "app_name": "通用游戏类库",
+   "package": "club.mvste.ske",
+   "icon": "\/storage\/emulated\/0\/DCIM\/IMG_7831567066424681864.jpg",
+   "version_code": 1,
+   "version_name": "1.0",
+   "min_sdk": 21,
+   "target_sdk": 26
+}
