@@ -13,10 +13,10 @@
 		变量 jsonSkill = [[
 		{
 			"id":0,
-			"name":"爱来自生成器",
+			"name":"测试",
 			"type":100,
 			"target":12,
-			"description":"消耗[need]，削弱目标物理防御，并造成[[from:105]*0.8]点伤害，自身回复实际伤害的20%",
+			"description":"消耗30点体力，削弱目标物理防御，并造成[[from:105]*0.8]点伤害，自身回复实际伤害的20%",
 			"unconditional":false,
 			"need":[
 				{
