@@ -34,13 +34,13 @@
 		"floor":[
 			{
 				"void":false,
-				"x":3,
-				"y":5,
+				"x":1,
+				"y":1,
 				"color":0xff0000ff
 			},{
 				"void":false,
-				"x":4,
-				"y":5,
+				"x":2,
+				"y":1,
 				"color":0xff0000ff
 			}
 		],
