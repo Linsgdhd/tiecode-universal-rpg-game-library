@@ -46,6 +46,13 @@
 		temp.y = y - 值.y
 		返回 temp
 	结束 方法
+	@运算符重载
+	方法 /(值 : 整数) : rl坐标
+		变量 temp : rl坐标
+		temp.x = x / 值
+		temp.y = y / 值
+		返回 temp
+	结束 方法
 结束 类
 
 类 rl高宽
