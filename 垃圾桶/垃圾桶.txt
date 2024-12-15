@@ -205,3 +205,102 @@
 	结束 方法
 结束 类
 */
+
+	// 草，为什么会这样
+	@静态
+	方法 旋转矩形(v : 矩形,角度 : 单精度小数) : 矩形
+		变量 cx : 单精度小数 = v.精确中心横坐标()
+		变量 cy : 单精度小数 = v.精确中心纵坐标()
+		@code
+		android.graphics.Rect rect = #v;
+		android.graphics.Matrix m = new android.graphics.Matrix();
+		m.postRotate(#角度, #cx, #cy);
+		android.graphics.PointF[] points = new android.graphics.PointF[]{
+			new android.graphics.PointF(rect.left, rect.top),
+            new android.graphics.PointF(rect.right, rect.top),
+            new android.graphics.PointF(rect.right, rect.bottom),
+            new android.graphics.PointF(rect.left, rect.bottom)
+		};
+		
+		float[] originalPoints = new float[points.length * 2];
+        for (int i = 0; i < points.length; i++) {
+            originalPoints[i * 2] = points[i].x;
+            originalPoints[i * 2 + 1] = points[i].y;
+        }
+		
+        float[] rotatedPoints = originalPoints.clone();
+		m.mapPoints(rotatedPoints);
+		for (int i = 0; i < points.length; i++) {
+            points[i].x = rotatedPoints[i * 2];
+            points[i].y = rotatedPoints[i * 2 + 1];
+        }
+
+        // 找到旋转后的矩形的边界
+        float min_x = Float.MAX_VALUE;
+        float min_y = Float.MAX_VALUE;
+        float max_x = -Float.MAX_VALUE;
+        float max_y = -Float.MAX_VALUE;
+
+        for (android.graphics.PointF point : points) {
+            if (point.x < min_x) min_x = point.x;
+            if (point.y < min_y) min_y = point.y;
+            if (point.x > max_x) max_x = point.x;
+            if (point.y > max_y) max_y = point.y;
+        }
+
+        // 返回新的边界矩形
+        return new android.graphics.Rect(
+            (int) Math.floor(min_x), 
+            (int) Math.floor(min_y), 
+            (int) Math.ceil(max_x), 
+            (int) Math.ceil(max_y)
+        );
+		@end
+	结束 方法
+    
+    // 不认真读书 跑来写代码 就是这样的
+    
+    // 旋转角度 = 父组件.旋转角度 + 旋转角度
+
+		如果 取反(背景图片 == 空) 则
+			背景图片.透明度 = 透明度
+		结束 如果
+
+		变量 右边距合并值 : 单精度小数 = 右外边距 + 外边距 + 父组件.内边距 + 父组件.右内边距
+		变量 左边距合并值 : 单精度小数 = 左外边距 + 外边距 + 父组件.内边距 + 父组件.左内边距
+		变量 上边距合并值 : 单精度小数 = 上外边距 + 外边距 + 父组件.内边距 + 父组件.上内边距
+		变量 下边距合并值 : 单精度小数 = 下外边距 + 外边距 + 父组件.内边距 + 父组件.下内边距
+
+		如果 对齐父组件中心 则
+			xs = 父组件.取基点().x / 2 - 宽度 / 2
+			ys = 父组件.取基点().y / 2 - 高度 / 2
+		结束 如果
+
+		如果 对齐父组件左边 则
+			xs = 父组件.xs + 左边距合并值
+		结束 如果
+
+		如果 对齐父组件右边 则
+			xs = 父组件.xe - 宽度 - 右边距合并值
+		结束 如果
+
+		如果 对齐父组件顶部 则
+			ys = 父组件.ys + 上边距合并值
+		结束 如果
+
+		如果 对齐父组件底部 则
+			ys = 父组件.ye - 高度 - 下边距合并值
+		结束 如果
+
+		xe = xs + 宽度
+		ye = ys + 高度
+
+		如果 取反(旋转角度 == 0.0f) 则
+			变量 temrect : 矩形 = (xs.到整数(),ys.到整数(),xe.到整数(),ye.到整数())
+			变量 newrect : 矩形点位置信息 = 数学.旋转矩形(temrect,旋转角度)
+			// 调试输出("旋转完成"+newrect.上.到文本() + newrect.下.到文本() + newrect.左.到文本() + newrect.右.到文本())
+			xs = newrect.xs
+			xe = newrect.xe
+			ys = newrect.ys
+			ye = newrect.ye
+		结束 如果

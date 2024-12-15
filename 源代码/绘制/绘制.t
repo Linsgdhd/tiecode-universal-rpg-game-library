@@ -7,7 +7,10 @@
 @导入Java("android.view.SurfaceView")
 @导入Java("android.content.Context")
 @导入Java("android.view.Choreographer")
+@导入Java("android.view.Display")
 类 游戏画布 : 可视化组件
+	变量 容器 : rl组件容器
+	变量 可用 : 逻辑型 = 假
 	@code
 	Bitmap img;
 	Canvas canvas;
@@ -37,6 +40,7 @@
 				public void doFrame(long frameTimeNanos) {
 					if(status){
 						#执行绘制();
+						#更新ui();
 						Canvas canvas = null;
 						try {
 							canvas = view.getHolder().lockCanvas();
@@ -59,7 +63,7 @@
 				canvas=new Canvas(img);
 				canvas.scale(2.0f,2.0f);
 				Choreographer.getInstance().postFrameCallback(frameCallback);
-				#游戏画布创建完毕();
+				#初始化();
 			}
 			@Override
 			public void surfaceDestroyed (SurfaceHolder holder){
@@ -123,6 +127,37 @@
 	定义事件 画布单击抬起(x:整数,y:整数)
 	定义事件 画布按下滑动(x:整数,y:整数,滑动x距离:整数,滑动y距离:整数)
 	定义事件 执行绘制()
+	
+	@隐藏
+	方法 初始化()
+		如果 可用 则
+			返回
+		结束 如果
+		容器.根容器 = 真
+		容器.父组件 = 容器
+		容器.宽度 = 获取画布().返回宽度() / 2
+		容器.高度 = 获取画布().返回高度() / 2
+		容器.预加载()
+		可用 = 真
+		提交到新线程运行()
+		循环(真)
+			code if(!status) continue;
+			容器.数据更新()
+			延时(16)
+		结束 循环
+		结束提交到新线程()
+		游戏画布创建完毕()
+	结束 方法
+	
+	@隐藏
+	方法 更新ui()
+		容器.绘制(获取画布())
+	结束 方法
+	
+	方法 添加组件(组件 : ui组件)
+		容器.添加组件(组件)
+	结束 方法
+	
 	//通过assets文件名获得位图对象
 	//8不可见，0可见，4不可见但仍然占用布局空间
 	方法 启用(是否:整数)
@@ -133,17 +168,15 @@
 		code status = true;
 	结束 方法
 	
+	方法 已激活() : 逻辑型
+		code return status;
+	结束 方法
+	
 	方法 暂停()
 		code status = false;
 	结束 方法
 	
-	方法 目标帧率(值 : 单精度小数 = 60.0f)
-		@code
-		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-	 	 		SurfaceView surfaceView = getView(); // 获取你的SurfaceView或TextureView实例
-		 		 surfaceView.setFrameRate(#值); // 设置目标帧率为120Hz
-		}
-		@end
+	方法 目标帧率(环境 : 窗口管理器,目标值 : 单精度小数)
 	结束 方法
 	
 	方法 返回画布矩形():矩形
@@ -155,6 +188,7 @@
 		return s;
 		@end
 	结束 方法
+	
 	方法 获取画布():画布
 		code return canvas;
 	结束 方法
@@ -281,6 +315,7 @@
 		code #this.setTextSkewX(#角度);
 	结束 方法
 结束 类
+
 @导入Java("android.graphics.Canvas")
 @指代类("android.graphics.Canvas")
 类 画布
@@ -288,108 +323,149 @@
 	方法 填充画布颜色3(A:整数,R:整数,G:整数,B:整数)
 		code #this.drawARGB(#A,#R,#G,#B);
 	结束 方法
+	
 	方法 填充画布颜色1(颜色:整数)
 		code #this.drawColor(#颜色);
 	结束 方法
+	
 	方法 填充画布颜色2(r:整数,g:整数,b:整数)
 		code #this.drawRGB(#r,#g,#b);
 	结束 方法
-	/*绘制指定的位图，自动缩放/翻译以填充目标矩形。 如果源矩形不为空，则指定要绘制的位图的子集。
+	
+	/*
+	绘制指定的位图，自动缩放/翻译以填充目标矩形。 如果源矩形不为空，则指定要绘制的位图的子集。
 	画笔可以为空.源矩形可以为空.
 	*/
 	方法 剪辑矩形区域1(矩形:矩形):逻辑型
 		code return #this.clipRect(#矩形);
 	结束 方法
+	
 	方法 剪辑矩形区域2(左边:单精度小数,顶边:单精度小数,右边:单精度小数,底边:单精度小数):逻辑型
 		code return #this.clipRect(#左边,#顶边,#右边,#底边);
 	结束 方法
-/*	方法 剪辑几何形状(几何:几何形状):逻辑型
-code return #this.clipPath(#几何);
+	
+	方法 剪辑几何形状(几何 : Path) : 逻辑型
+		code return #this.clipPath(#几何);
 	结束 方法
-	*/
-	方法 绘制位图1(位图:位图对象,源矩形:矩形,目标矩形:矩形,画笔:画笔)
-		code #this.drawBitmap(#位图,#源矩形,#目标矩形,#画笔);
+	
+	方法 绘制位图1(位图:位图对象,源矩形:矩形,目标矩形:矩形,笔:画笔)
+		code #this.drawBitmap(#位图,#源矩形,#目标矩形,#笔);
 	结束 方法
-	/*
-	方法 绘制位图3(位图:位图对象,变换:几何变换,画笔:画笔)
-		code #this.drawBitmap(#位图,#变换,#画笔);
+	
+	方法 绘制位图3(位图:位图对象,变换:Path,笔:画笔)
+		code #this.drawBitmap(#位图,#变换,#笔);
 	结束 方法
-	*/
+	
 	//画笔可以为空
-	方法 绘制位图2(位图:位图对象,x:单精度小数,y:单精度小数,画笔:画笔)
-		code #this.drawBitmap(#位图,#x,#y,#画笔);
+	方法 绘制位图2(位图:位图对象,x:单精度小数,y:单精度小数,笔:画笔)
+		code #this.drawBitmap(#位图,#x,#y,#笔);
 	结束 方法
+	
+	方法 绘制Drawable(目标 : 可绘制对象,height : 整数,width : 整数,x : 单精度小数,y : 单精度小数,hb : 画笔)
+		变量 tempbitmap : 位图对象 = 位图对象.创建位图2(width,height,位图配置.ARGB_8888)
+		code Canvas canv = new Canvas(#tempbitmap);
+		code #目标.setBounds(0,0,canv.getWidth(),canv.getHeight());
+		code #目标.draw(canv);
+		绘制位图2(tempbitmap,x,y,hb)
+	结束 方法
+	
 	方法 绘制圆(x:单精度小数,y:单精度小数,半径:单精度小数,画笔:画笔)
 		code #this.drawCircle(#x,#y,#半径,#画笔);
 	结束 方法
+	
 	方法 绘制线条(起始x:单精度小数,起始y:单精度小数,终点x:单精度小数,终点y:单精度小数,画笔:画笔)
 		code #this.drawLine(#起始x,#起始y,#终点x,#终点y,#画笔);
 	结束 方法
+	
+	方法 绘制线条2(起始 : rl坐标,终点 : rl坐标,画笔:画笔)
+		code #this.drawLine(#<起始.x>,#<起始.y>,#<终点.x>,#<终点.y>,#画笔);
+	结束 方法
+	
 	方法 绘制椭圆(左边:单精度小数,顶点:单精度小数,右边:单精度小数,底边:单精度小数,画笔:画笔)
 		code #this.drawOval(#左边,#顶点,#右边,#底边,#画笔);
 	结束 方法
+	
 	方法 绘制点(x:单精度小数,y:单精度小数,画笔:画笔)
 		code #this.drawPoint(#x,#y,#画笔);
 	结束 方法
+	
 	方法 绘制矩形2(左边:单精度小数,顶点:单精度小数,右边:单精度小数,底边:单精度小数,画笔:画笔)
 		code #this.drawRect(#左边,#顶点,#右边,#底边,#画笔);
 	结束 方法
+	
 	方法 绘制矩形1(矩形:矩形,画笔:画笔)
 		code #this.drawRect(#矩形,#画笔);
 	结束 方法
+	
 	方法 绘制圆角矩形(左边:单精度小数,顶点:单精度小数,右边:单精度小数,底边:单精度小数,圆角x:单精度小数,圆角y:单精度小数,画笔:画笔)
 		code #this.drawRoundRect(#左边,#顶点,#右边,#底边,#圆角x,#圆角y,#画笔);
 	结束 方法
+	
 	方法 绘制文本(内容:文本,x:单精度小数,y:单精度小数,画笔:画笔)
 		@code 
 		android.graphics.Paint.FontMetrics fontMetrics = #画笔.getFontMetrics();
 		#this.drawText(#内容,#x,#y+((fontMetrics.descent - fontMetrics.ascent) / 2 -fontMetrics.descent+((fontMetrics.bottom - fontMetrics.top)/2)),#画笔);
 		@end
 	结束 方法
+	
 	方法 绘制文本2(内容:文本,文本开始:整数,文本结束:整数,x:整数,y:整数,画笔:画笔)
-	@code	android.graphics.Paint.FontMetrics fontMetrics = #画笔.getFontMetrics();
+		@code
+		android.graphics.Paint.FontMetrics fontMetrics = #画笔.getFontMetrics();
 		#this.drawText(#内容,#文本开始,#文本结束,#x,#y+((fontMetrics.descent - fontMetrics.ascent) / 2 -fontMetrics.descent+((fontMetrics.bottom - fontMetrics.top)/2)),#画笔);
 		@end
 	结束 方法
+	
 	方法 返回画布密度():整数
 		code return #this.getDensity();
 	结束 方法
+	
 	//返回当前绘图图层的高度
 	方法 返回高度():整数
 		code return #this.getHeight();
 	结束 方法
+	
 	//返回当前绘图图层的宽度
 	方法 返回宽度():整数
 		code return #this.getWidth();
 	结束 方法
+	
 	方法 是否启用硬件加速():逻辑型
 		code return #this.isHardwareAccelerated();
 	结束 方法
+	
 	方法 保存画布():整数
 		code return #this.save();
 	结束 方法
+	
 	方法 恢复画布()
-		code	 #this.restore();
+		code #this.restore();
 	结束 方法
+	
 	方法 旋转2(旋转角度:单精度小数,旋转x:单精度小数,旋转y:单精度小数)
 		code #this.rotate(#旋转角度,#旋转x,#旋转y);
 	结束 方法
+	
 	方法 旋转1(旋转角度:单精度小数)
 		code #this.rotate(#旋转角度);
 	结束 方法
-	/*用指定的比例预先缩放当前矩阵。
+	
+	/*
+	用指定的比例预先缩放当前矩阵。
 	以(0,0)为中心点，将画布长宽分别变为原来的sx,sy倍
 	*/
 	方法 缩放1(sx:单精度小数,sy:单精度小数)
 		code #this.scale(#sx,#sy);
 	结束 方法
+	
 	//以(px,py)为中心点，将画布长宽分别变为原来的sx/sy倍
 	方法 缩放2(sx:单精度小数,sy:单精度小数,px:单精度小数,py:单精度小数)
 		code #this.scale(#sx,#sy,#px,#py);
 	结束 方法
+	
 	方法 设置画布位图密度(密度:整数)
 		code #this.setDensity(#密度);
 	结束 方法
+	
 	方法 平移(x:整数,y:整数)
 		code #this.translate(#x,#y);
 	结束 方法

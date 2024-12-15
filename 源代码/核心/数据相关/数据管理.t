@@ -34,30 +34,9 @@
 		变量 temp : 位图对象 = 取目录路径(路径定义.图片路径) + 资源名称
 		返回 temp
 	结束 方法
-	方法 图片资源转位图(draw : 图片资源) : 位图对象
-		@code
-		/*
-		import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.drawable.Drawable;
-*/
-        // 获取Drawable的宽度和高度
-		android.graphics.drawable.Drawable drawable = #draw;
-        int width = drawable.getIntrinsicWidth();
-        int height = drawable.getIntrinsicHeight();
-
-        // 创建一个新的Bitmap对象
-        android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888);
-
-        // 使用Bitmap创建一个Canvas对象
-        android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
-
-        // 将Drawable绘制到Canvas上
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-
-        return bitmap;
-		@end
+	方法 取可绘制对象(资源名称 : 文本) : 可绘制对象
+		变量 temp : 可绘制对象 = 取目录路径(路径定义.图片路径) + 资源名称
+		返回 temp
 	结束 方法
 结束 类
 
