@@ -86,7 +86,7 @@
 类 rl图形描述
 	变量 width : 单精度小数 = 0.0f
 	变量 height : 单精度小数 = 0.0f
-	变量 shape : rlshape
+	变量 shape : Path
 结束 类
 
 @前缀代码("final")

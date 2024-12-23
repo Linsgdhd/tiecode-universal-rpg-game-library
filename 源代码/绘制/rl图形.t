@@ -132,33 +132,93 @@
 @指代类("android.graphics.Matrix")
 类 矩阵
 	方法 旋转(角度 : 单精度小数,中心点 : rl坐标)
-		code this.postRotate(#角度, #<中心点.x>, #<中心点.y>);
+		code #this.postRotate(#角度, #<中心点.x>, #<中心点.y>);
 	结束 方法
 	方法 缩放(x : 单精度小数,y : 单精度小数,中心点 : rl坐标)
-		code this.postScale(#x, #y, #<中心点.x>, #<中心点.y>);
+		code #this.postScale(#x, #y, #<中心点.x>, #<中心点.y>);
 	结束 方法
 	方法 倾斜(x : 单精度小数,y : 单精度小数,中心点 : rl坐标)
-		code this.postSkew(#x, #y, #<中心点.x>, #<中心点.y>);
+		code #this.postSkew(#x, #y, #<中心点.x>, #<中心点.y>);
 	结束 方法
-	方法 应用(原始位图 : 位图对象) : 位图对象
+	方法 应用于位图(原始位图 : 位图对象) : 位图对象
 		code return android.graphics.Bitmap.createBitmap(#原始位图, 0, 0, #原始位图.getWidth(), #原始位图.getHeight(), this, true);
 	结束 方法
 结束 类
 
+@导入Java("android.graphics.Path")
 @指代类("android.graphics.Path")
 类 Path
 	方法 移动(x : 单精度小数,y : 单精度小数)
+		code #this.moveTo(#x, #y);
 	结束 方法
+	
 	方法 直线(x : 单精度小数,y : 单精度小数)
+		code #this.lineTo(#x, #y);
 	结束 方法
-	方法 曲线()
+	方法 二次贝塞尔曲线(xs : 单精度小数,ys : 单精度小数,xe : 单精度小数,ye : 单精度小数)
+		code #this.quadTo(#xs, #ys, #xe, #ye);
 	结束 方法
-	方法 弧线()
+	方法 三次贝塞尔曲线(xs : 单精度小数,ys : 单精度小数,xi : 单精度小数,yi : 单精度小数,xe : 单精度小数,ye : 单精度小数)
+		code #this.cubicTo(#xs, #ys, #xi, #yi, #xe, #ye);
 	结束 方法
+	
+	方法 矩形(目标矩形 : 矩形,顺时针绘制 : 逻辑型 = 真)
+		code #this.addRect(#目标矩形, #顺时针绘制 ? Path.Direction.CW : Path.Direction.CCW);
+	结束 方法
+	方法 圆形(x : 单精度小数, y : 单精度小数 , 半径 : 单精度小数,顺时针绘制 : 逻辑型 = 真)
+		code #this.addCircle(#x, #y, #半径, #顺时针绘制 ? Path.Direction.CW : Path.Direction.CCW)
+	结束 方法
+	
 	方法 闭合()
+		code #this.close();
 	结束 方法
 	方法 重置()
+		code #this.reset();
 	结束 方法
+	方法 清空()
+		code #this.rewind();
+	结束 方法
+	方法 简化()
+		code #this.simplify();
+	结束 方法
+	
+	属性读 填充类型() : FillType
+		code return #this.getFillType();
+	结束 属性
+	属性写 填充类型(类型 : FillType)
+		code setFillType(#类型);
+	结束 属性
+	
+	方法 为空() : 逻辑型
+		code #this.isEmpty();
+	结束 方法
+	
+	方法 矩阵变换(value : 矩阵)
+		code #this.transform(#value);
+	结束 方法
+结束 类
+
+@前缀代码("final")
+@禁止创建对象
+@禁止继承
+@指代类("android.graphics.Path.FillType")
+类 FillType
+	@静态
+	常量 绕线规则 : FillType?
+	@静态
+	常量 奇偶规则 : FillType?
+	@静态
+	常量 反向绕线规则 : FillType?
+	@静态
+	常量 反向奇偶规则 : FillType?
+	@code
+	static {
+		#绕线规则 = android.graphics.Path.FillType.WINDING;
+		#奇偶规则 = android.graphics.Path.FillType.EVEN_ODD;
+		#反向绕线规则 = android.graphics.Path.FillType.INVERSE_WINDING;
+		#反向奇偶规则 = android.graphics.Path.FillType.INVERSE_EVEN_ODD;
+	}
+	@end
 结束 类
 
 @指代类("java.awt.image.BufferedImage")
@@ -183,6 +243,24 @@
 
 
 /*
+
+在中文环境中，`android.graphics.Path.FillType` 枚举定义的四种填充类型可以翻译为如下：
+
+1. **Path.FillType.WINDING** - **绕线规则**（或**非零环绕规则**）：
+   - 该规则根据路径的方向和交点的累计值来决定是否填充。如果累计值不是0，则填充；如果是0，则不填充。
+
+2. **Path.FillType.EVEN_ODD** - **奇偶规则**（或**交替规则**）：
+   - 根据从一个点到无限远的射线与路径相交次数的奇偶性来决定是否填充。如果交点数是奇数，则填充；如果是偶数，则不填充。
+
+3. **Path.FillType.INVERSE_WINDING** - **反向绕线规则**（或**反向非零环绕规则**）：
+   - 这是绕线规则的反转版本，原本应该填充的区域不填充，而原本不应该填充的区域则进行填充。
+
+4. **Path.FillType.INVERSE_EVEN_ODD** - **反向奇偶规则**（或**反向交替规则**）：
+   - 这是奇偶规则的反转版本，原本应该填充的区域不填充，而原本不应该填充的区域则进行填充。
+
+这些术语在中国的图形编程社区中被广泛使用，特别是在涉及到 Android 或其他支持 `Path` 类及其填充规则的平台时。选择合适的中文术语取决于具体的上下文和个人偏好，但上述提供的翻译是比较常见的说法。
+
+
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
