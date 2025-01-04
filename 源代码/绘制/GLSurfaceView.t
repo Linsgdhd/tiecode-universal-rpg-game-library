@@ -114,7 +114,7 @@
 @导入Java("android.opengl.GLES20")
 @导入Java("javax.microedition.khronos.opengles.GL10")
 @导入Java("javax.microedition.khronos.egl.EGLConfig")
-@后缀代码("implements Renderer")
+@后缀代码("implements android.opengl.GLSurfaceView.Renderer")
 类 渲染器
 	@code
 	@Override
@@ -153,7 +153,6 @@
 
 @指代类("android.opengl.GLES20")
 类 GLES20
-	
 	// GLES20.GL_COLOR_BUFFER_BIT
 	@静态
 	常量 颜色缓冲区 : 整数?

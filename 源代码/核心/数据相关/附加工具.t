@@ -1,6 +1,21 @@
 @全局类
 类 生成器
 	@静态
+	方法 错误位图(错误文本 : 文本) : 位图对象
+		变量 tempbitmap : 位图对象 = 位图对象.创建位图2(256,256,位图配置.ARGB_8888)
+		变量 tempcanvas : 画布
+		变量 错误画笔 : 画笔
+		错误画笔.设置argb(255,255,0,0);
+		错误画笔.设置文本大小(30);
+		@code
+		android.graphics.Canvas canvas = new android.graphics.Canvas(#tempbitmap);
+		#tempcanvas = canvas;
+		@end
+		tempcanvas.绘制文本(错误文本,0,0,错误画笔);
+		返回 tempbitmap
+	结束 方法
+	
+	@静态
 	方法 空实体() : 实体
 		变量 temp : 实体
 		temp.实例化(空战斗属性().序列化())
