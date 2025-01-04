@@ -70,7 +70,7 @@
 				#游戏画布销毁();
 				Choreographer.getInstance().removeFrameCallback(frameCallback);
 			}
-		});
+		} );
 		return view;
 	}
 	@Override
