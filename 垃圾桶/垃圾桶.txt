@@ -1,4 +1,468 @@
 
+@导入Java("android.graphics.Path")
+@指代类("android.graphics.Path")
+类 Path
+	方法 移动(x : 单精度小数,y : 单精度小数)
+		code #this.moveTo(#x, #y);
+	结束 方法
+	
+	方法 直线(x : 单精度小数,y : 单精度小数)
+		code #this.lineTo(#x, #y);
+	结束 方法
+	
+	方法 二次贝塞尔曲线(xs : 单精度小数,ys : 单精度小数,xe : 单精度小数,ye : 单精度小数)
+		code #this.quadTo(#xs, #ys, #xe, #ye);
+	结束 方法
+	
+	方法 三次贝塞尔曲线(xs : 单精度小数,ys : 单精度小数,xi : 单精度小数,yi : 单精度小数,xe : 单精度小数,ye : 单精度小数)
+		code #this.cubicTo(#xs, #ys, #xi, #yi, #xe, #ye);
+	结束 方法
+	
+	方法 矩形(目标矩形 : 矩形,顺时针绘制 : 逻辑型 = 真)
+		code #this.addRect(#目标矩形, #顺时针绘制 ? Path.Direction.CW : Path.Direction.CCW);
+	结束 方法
+	
+	方法 圆形(x : 单精度小数, y : 单精度小数,半径 : 单精度小数,顺时针绘制 : 逻辑型 = 真)
+		code #this.addCircle(#x, #y, #半径, #顺时针绘制 ? Path.Direction.CW : Path.Direction.CCW)
+	结束 方法
+	
+	方法 闭合()
+		code #this.close();
+	结束 方法
+	
+	方法 重置()
+		code #this.reset();
+	结束 方法
+	
+	方法 清空()
+		code #this.rewind();
+	结束 方法
+	
+	方法 简化()
+		code #this.simplify();
+	结束 方法
+	
+	属性读 填充类型() : FillType
+		code return #this.getFillType();
+	结束 属性
+	
+	属性写 填充类型(类型 : FillType)
+		code setFillType(#类型);
+	结束 属性
+	
+	方法 为空() : 逻辑型
+		code #this.isEmpty();
+	结束 方法
+	
+	方法 矩阵变换(value : 矩阵)
+		code #this.transform(#value);
+	结束 方法
+结束 类
+
+@前缀代码("final")
+@禁止创建对象
+@禁止继承
+@指代类("android.graphics.Path.FillType")
+类 FillType
+	@静态
+	常量 绕线规则 : FillType?
+	@静态
+	常量 奇偶规则 : FillType?
+	@静态
+	常量 反向绕线规则 : FillType?
+	@静态
+	常量 反向奇偶规则 : FillType?
+	@code
+	static {
+		#绕线规则 = android.graphics.Path.FillType.WINDING;
+		#奇偶规则 = android.graphics.Path.FillType.EVEN_ODD;
+		#反向绕线规则 = android.graphics.Path.FillType.INVERSE_WINDING;
+		#反向奇偶规则 = android.graphics.Path.FillType.INVERSE_EVEN_ODD;
+	}
+	@end
+结束 类
+
+@导入Java("android.view.SurfaceHolder")
+@导入Java("android.view.SurfaceHolder.*")
+@导入Java("android.view.MotionEvent")
+@导入Java("android.graphics.Canvas")
+@导入Java("android.graphics.Bitmap")
+@导入Java("android.graphics.Bitmap.Config")
+@导入Java("android.view.SurfaceView")
+@导入Java("android.content.Context")
+@导入Java("android.view.Choreographer")
+@导入Java("android.view.Display")
+类 rlv2游戏视图 : 可视化组件
+	变量 控制器 : 画面控制器?
+	变量 帧回调 : 帧回调
+	变量 回调 : 控制器回调
+	变量 rlv位图 : 位图?
+	变量 rlv画布 : 画布
+	变量 游戏绘制1 : 线程
+	变量 游戏绘制2 : 线程
+	变量 界面绘制 : 调度器
+	@code
+	public #<rlv2游戏视图>(android.content.Context context) {
+		super(context);
+	}
+
+	@Override
+	public android.view.SurfaceView onCreateView(android.content.Context context) {
+		android.view.SurfaceView view = new GameSurfaceView(context);
+		#控制器 = view.getHolder();
+		#初始化();
+		return view;
+	}
+	
+	@Override
+	public android.view.SurfaceView getView() {
+		return (android.view.SurfaceView) view;
+	}
+	
+	class GameSurfaceView extends SurfaceView {
+		private float startX=0.0f;//初始x 
+		private float startY=0.0f;//初始Y
+		
+		public GameSurfaceView(Context context){ 
+			super(context);
+			this.setFocusable(true);
+		}
+		
+		@Override
+		public boolean onTouchEvent(MotionEvent event) { 
+			return #触摸(event);
+		}
+	}
+	@end
+	
+	事件 游戏绘制1 : 被启动()
+		
+	结束 事件
+	
+	事件 游戏绘制2 : 被启动()
+	结束 事件
+	
+	@隐藏
+	方法 初始化()
+		控制器.添加回调(回调)
+	结束 方法
+	
+	@隐藏
+	方法 触摸(event : 触摸事件) : 逻辑型
+		返回 真
+	结束 方法
+	
+	方法 取控制器() : 画面控制器
+		返回 控制器
+	结束 方法
+	
+	方法 取画布() : 画布
+		返回 rlv画布
+	结束 方法
+
+	事件 回调 : 创建完毕(控制器 : 画面控制器)
+		code #rlv位图 = Bitmap.createBitmap(#控制器.getSurfaceFrame().width(),#控制器.getSurfaceFrame().height(),Bitmap.Config.ARGB_8888);
+		code #rlv画布 = new Canvas(#rlv位图);
+	结束 事件
+
+	事件 回调 : 大小改变(控制器 : 画面控制器,计划 : 整数,宽度 : 整数,高度 : 整数)
+		rlv位图.高度 = 高度
+		rlv位图.宽度 = 宽度			
+	结束 事件
+
+	事件 回调 : 画面销毁(控制器 : 画面控制器)
+
+	结束 事件
+结束 类
+
+@导入Java("android.view.SurfaceHolder")
+@指代类("android.view.SurfaceHolder")
+类 画面控制器
+	方法 添加回调(回调 : 控制器回调)
+		code #this.addCallback(#回调);
+	结束 方法
+	
+	方法 锁定画布() : 画布
+		code return #this.lockCanvas();
+	结束 方法
+	
+	方法 提交修改(canvas : 画布)
+		code #this.unlockCanvasAndPost(#canvas);
+	结束 方法
+	
+	方法 设置尺寸(宽度 : 整数,高度 : 整数)
+		code #this.setFixedSize(#宽度, #高度);
+	结束 方法
+	
+	方法 设置像素格式(格式 : 整数)
+		code #this.setFormat(#格式);
+	结束 方法
+	
+	方法 获取像素格式() : 整数
+		code return #this.getFormat();
+	结束 方法
+	
+	方法 设置画面尺寸(宽度 : 整数,高度 : 整数)
+		code #this.setFixedSize(#宽度,#高度);
+	结束 方法
+结束 类
+
+@导入Java("android.view.SurfaceHolder")
+@导入Java("android.view.SurfaceHolder.*")
+@后缀代码("implements SurfaceHolder.Callback")
+类 控制器回调
+	@code
+	@Override
+	public void surfaceCreated (SurfaceHolder holder){
+		#创建完毕(holder);
+	}
+	@Override
+	public void surfaceChanged (SurfaceHolder holder,int format, int width, int height){
+		#大小改变(holder,format,width,height);
+	}
+	@Override
+	public void surfaceDestroyed (SurfaceHolder holder){
+		#画面销毁(holder);
+	}
+	@end
+	/*
+	@虚拟事件
+	方法 创建完毕(控制器 : 画面控制器)
+	结束 方法
+	@虚拟事件
+	方法 大小改变(控制器 : 画面控制器,计划 : 整数,宽度 : 整数,高度 : 整数)
+	结束 方法
+	@虚拟事件
+	方法 画面销毁(控制器 : 画面控制器)
+	结束 方法
+	*/
+	定义事件 创建完毕(控制器 : 画面控制器)
+	定义事件 大小改变(控制器 : 画面控制器,计划 : 整数,宽度 : 整数,高度 : 整数)
+	定义事件 画面销毁(控制器 : 画面控制器)
+结束 类
+
+@导入Java("android.graphics.PixelFormat")
+@指代类("android.graphics.PixelFormat")
+类 像素格式
+	@静态
+	常量 RGBA_8888           : 整数?
+	@静态
+	常量 RGB_565             : 整数?
+	@静态
+	常量 RGBA_4444           : 整数?
+	@静态
+	常量 A_8                 : 整数?
+	@静态
+	常量 LUMINANCE_8         : 整数?
+	@静态
+	常量 LUMINANCE_8_ALPHA_8 : 整数?
+	
+	@code
+	static {
+		#RGBA_8888           = PixelFormat.RGBA_8888;
+		#RGB_565             = PixelFormat.RGB_565;
+		#RGBA_4444           = PixelFormat.RGBA_4444;
+		#A_8                 = PixelFormat.A_8;
+		#LUMINANCE_8         = PixelFormat.LUMINANCE_8;
+		#LUMINANCE_8_ALPHA_8 = PixelFormat.LUMINANCE_8_ALPHA_8;
+	}
+	@end
+结束 类
+
+*/
+
+
+
+@导入Java("android.view.SurfaceHolder")
+@导入Java("android.view.SurfaceHolder.*")
+@导入Java("android.view.MotionEvent")
+@导入Java("android.graphics.Canvas")
+@导入Java("android.graphics.Bitmap")
+@导入Java("android.graphics.Bitmap.Config")
+@导入Java("android.view.SurfaceView")
+@导入Java("android.content.Context")
+@导入Java("android.view.Choreographer")
+@导入Java("android.view.Display")
+类 rlv2游戏视图 : 可视化组件
+	变量 控制器 : 画面控制器?
+	变量 帧回调 : 帧回调
+	变量 回调 : 控制器回调
+	变量 rlv位图 : 位图?
+	变量 rlv画布 : 画布
+	变量 游戏绘制1 : 线程
+	变量 游戏绘制2 : 线程
+	变量 界面绘制 : 调度器
+	@code
+	public #<rlv2游戏视图>(android.content.Context context) {
+		super(context);
+	}
+
+	@Override
+	public android.view.SurfaceView onCreateView(android.content.Context context) {
+		android.view.SurfaceView view = new GameSurfaceView(context);
+		#控制器 = view.getHolder();
+		#初始化();
+		return view;
+	}
+	
+	@Override
+	public android.view.SurfaceView getView() {
+		return (android.view.SurfaceView) view;
+	}
+	
+	class GameSurfaceView extends SurfaceView {
+		private float startX=0.0f;//初始x 
+		private float startY=0.0f;//初始Y
+		
+		public GameSurfaceView(Context context){ 
+			super(context);
+			this.setFocusable(true);
+		}
+		
+		@Override
+		public boolean onTouchEvent(MotionEvent event) { 
+			return #触摸(event);
+		}
+	}
+	@end
+	
+	事件 游戏绘制1 : 被启动()
+		
+	结束 事件
+	
+	事件 游戏绘制2 : 被启动()
+	结束 事件
+	
+	@隐藏
+	方法 初始化()
+		控制器.添加回调(回调)
+	结束 方法
+	
+	@隐藏
+	方法 触摸(event : 触摸事件) : 逻辑型
+		返回 真
+	结束 方法
+	
+	方法 取控制器() : 画面控制器
+		返回 控制器
+	结束 方法
+	
+	方法 取画布() : 画布
+		返回 rlv画布
+	结束 方法
+
+	事件 回调 : 创建完毕(控制器 : 画面控制器)
+		code #rlv位图 = Bitmap.createBitmap(#控制器.getSurfaceFrame().width(),#控制器.getSurfaceFrame().height(),Bitmap.Config.ARGB_8888);
+		code #rlv画布 = new Canvas(#rlv位图);
+	结束 事件
+
+	事件 回调 : 大小改变(控制器 : 画面控制器,计划 : 整数,宽度 : 整数,高度 : 整数)
+		rlv位图.高度 = 高度
+		rlv位图.宽度 = 宽度			
+	结束 事件
+
+	事件 回调 : 画面销毁(控制器 : 画面控制器)
+
+	结束 事件
+结束 类
+
+@导入Java("android.view.SurfaceHolder")
+@指代类("android.view.SurfaceHolder")
+类 画面控制器
+	方法 添加回调(回调 : 控制器回调)
+		code #this.addCallback(#回调);
+	结束 方法
+	
+	方法 锁定画布() : 画布
+		code return #this.lockCanvas();
+	结束 方法
+	
+	方法 提交修改(canvas : 画布)
+		code #this.unlockCanvasAndPost(#canvas);
+	结束 方法
+	
+	方法 设置尺寸(宽度 : 整数,高度 : 整数)
+		code #this.setFixedSize(#宽度, #高度);
+	结束 方法
+	
+	方法 设置像素格式(格式 : 整数)
+		code #this.setFormat(#格式);
+	结束 方法
+	
+	方法 获取像素格式() : 整数
+		code return #this.getFormat();
+	结束 方法
+	
+	方法 设置画面尺寸(宽度 : 整数,高度 : 整数)
+		code #this.setFixedSize(#宽度,#高度);
+	结束 方法
+结束 类
+
+@导入Java("android.view.SurfaceHolder")
+@导入Java("android.view.SurfaceHolder.*")
+@后缀代码("implements SurfaceHolder.Callback")
+类 控制器回调
+	@code
+	@Override
+	public void surfaceCreated (SurfaceHolder holder){
+		#创建完毕(holder);
+	}
+	@Override
+	public void surfaceChanged (SurfaceHolder holder,int format, int width, int height){
+		#大小改变(holder,format,width,height);
+	}
+	@Override
+	public void surfaceDestroyed (SurfaceHolder holder){
+		#画面销毁(holder);
+	}
+	@end
+	/*
+	@虚拟事件
+	方法 创建完毕(控制器 : 画面控制器)
+	结束 方法
+	@虚拟事件
+	方法 大小改变(控制器 : 画面控制器,计划 : 整数,宽度 : 整数,高度 : 整数)
+	结束 方法
+	@虚拟事件
+	方法 画面销毁(控制器 : 画面控制器)
+	结束 方法
+	*/
+	定义事件 创建完毕(控制器 : 画面控制器)
+	定义事件 大小改变(控制器 : 画面控制器,计划 : 整数,宽度 : 整数,高度 : 整数)
+	定义事件 画面销毁(控制器 : 画面控制器)
+结束 类
+
+@导入Java("android.graphics.PixelFormat")
+@指代类("android.graphics.PixelFormat")
+类 像素格式
+	@静态
+	常量 RGBA_8888           : 整数?
+	@静态
+	常量 RGB_565             : 整数?
+	@静态
+	常量 RGBA_4444           : 整数?
+	@静态
+	常量 A_8                 : 整数?
+	@静态
+	常量 LUMINANCE_8         : 整数?
+	@静态
+	常量 LUMINANCE_8_ALPHA_8 : 整数?
+	
+	@code
+	static {
+		#RGBA_8888           = PixelFormat.RGBA_8888;
+		#RGB_565             = PixelFormat.RGB_565;
+		#RGBA_4444           = PixelFormat.RGBA_4444;
+		#A_8                 = PixelFormat.A_8;
+		#LUMINANCE_8         = PixelFormat.LUMINANCE_8;
+		#LUMINANCE_8_ALPHA_8 = PixelFormat.LUMINANCE_8_ALPHA_8;
+	}
+	@end
+结束 类
+
+*/
+
+
 @静态
 类 场景实体类型
 	@静态

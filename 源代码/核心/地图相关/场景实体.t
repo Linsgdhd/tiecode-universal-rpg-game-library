@@ -1,11 +1,98 @@
-类 可绘制实体 : 可序列化数据类
+类 场景实体v1d1 : 可绘制实体
+	变量 骨骼 : 支架容器
+	变量 位图 : 位图容器
+	变量 容器 : 场景v1d1?
+	事件 场景实体v1d1 : 初始化(data : JSON对象,scene : 场景v1d1)
+		容器 = scene
+	结束 事件
+	事件 场景实体v1d1 : 数据更新()
+		
+	结束 事件
+	事件 场景实体v1d1 : 绘制(canvas : 画布)
+		
+	结束 事件
+	事件 场景实体v1d1 : 销毁()
+		
+	结束 事件
+结束 类
+
+类 场景交互事件
+	@虚拟事件
+	方法 被触摸(位置 : rl坐标, 动作 : rl动作)
+	结束 方法
+结束 类
+
+@导入Java("java.util.ArrayList")
+@导入Java("java.util.List")
+类 可绘制实体容器
+	@code
+	List<#<可绘制实体>> container = new ArrayList<>();
+	@end
+	方法 添加(成员 : 可绘制实体)
+		code container.add(#成员);
+	结束 方法
+	方法 删除(索引 : 整数)
+		code container.remove(#索引);
+	结束 方法
+	方法 获取(索引 : 整数) : 可绘制实体
+		code return container.get(#索引);
+	结束 方法
+	方法 查询指定id实体(实体id : 整数) : 可绘制实体
+		变量 rt : 可绘制实体
+		rt.实体id = -1
+		@code
+		for(#<可绘制实体> ent : container) {
+			if(ent.getId() == #实体id && ent.allowFetch()) {
+				return ent;
+			}
+		}
+		@end
+		返回 rt
+	结束 方法
+	方法 查询指定图层可绘制实体(图层 : 整数) : 可绘制实体容器
+		变量 rt : 可绘制实体容器
+		code for(#<可绘制实体> ent : container) { if(ent.getLayer() == #图层 && ent.allowDraw()) { #<rt.添加>(ent); }}
+		返回 rt
+	结束 方法
+	方法 更新数据()
+		code for(#<可绘制实体> ent : container) { ent.update(); }
+	结束 方法
+	属性读 长度() : 整数
+		code return container.size();
+	结束 属性
+结束 类
+
+类 可绘制实体
+	变量 实体id : 整数
 	变量 空间信息 : rl空间信息
 	变量 可访问 : 逻辑型
+	变量 可绘制 : 逻辑型
 	变量 容器 : 场景v1d1?
 	变量 附件 : 集合
 	变量 启用碰撞 : 逻辑型
 	变量 启用重力 : 逻辑型
 	变量 图层 : 整数
+	变量 交互 : 场景交互事件
+	@code
+	public int getLayer() {
+		return #图层;
+	}
+	public int getId() {
+		return  #实体id;
+	}
+	public void update(){
+		#数据更新();
+	}
+	public void draw(android.graphics.Canvas canvas){
+		#绘制(canvas);
+	}
+	public boolean allowFetch() {
+		return #可访问;
+	}
+	public boolean allowDraw() {
+		return #可绘制;
+	}
+	@end
 	// 创建时调用一次
 	@虚拟事件
 	方法 初始化(data : JSON对象,scene : 场景v1d1)
@@ -24,47 +111,32 @@
 	结束 方法
 结束 类
 
-类 场景实体v1d1 : 可绘制实体
-	变量 骨骼 : 支架容器
-	变量 容器 : 场景v1d1?
-	事件 场景实体v1d1 : 初始化(data : JSON对象,scene : 场景v1d1)
-		容器 = scene
-	结束 事件
-	事件 场景实体v1d1 : 数据更新()
-	结束 事件
-	事件 场景实体v1d1 : 绘制(canvas : 画布)
-	结束 事件
-	事件 场景实体v1d1 : 销毁()
-	结束 事件
-结束 类
-
-类 支架容器
+类 支架容器 : 可绘制实体
 	变量 启用 : 逻辑型 = 假
 	变量 依附实体 : 可绘制实体?
 	变量 初始支架 : 支架
-	方法 初始化(来源 : 可绘制实体)
-		依附实体 = 来源
-		初始支架.父支架 = 初始支架
-		启用 = 真
-	结束 方法
+	
 结束 类
 
 类 支架
 	@静态
-	常量 居中对齐 : 整数 = 1
+	常量 居中 : 整数 = 1
 	@静态
-	常量 左侧对齐 : 整数 = 2
+	常量 左侧 : 整数 = 2
 	@静态
-	常量 右侧对齐 : 整数 = 3
+	常量 右侧 : 整数 = 3
 	
 	变量 支架id : 整数
+	// 即关节
 	变量 起点 : rl坐标
 	变量 长度 : 单精度小数 = 0.0f
 	变量 宽度 : 单精度小数 = 0.0f
 	变量 角度 : 单精度小数 = 0.0f
-	变量 父支架 : 支架?
+	变量 上级 : 支架?
+	变量 容器 : 支架容器?
 	变量 轴线对齐方式 : 整数
-	方法 取终点() : rl坐标
+	方法 终点() : rl坐标
+		
 	结束 方法
 结束 类
 
@@ -176,7 +248,6 @@
 			缓冲向量.y = 向量.y
 		结束 如果
 		位置 = 位置 + 缓冲向量 * 速度
-		
 		
 		/*
 		如果 数学.abs_float(缓冲向量.x) > 数学.abs_float(缓冲向量.y) 则
