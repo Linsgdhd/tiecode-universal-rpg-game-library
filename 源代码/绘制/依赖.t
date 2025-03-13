@@ -100,8 +100,6 @@
 	结束 方法
 结束 类
 
-
-
 @导入Java("android.graphics.Bitmap")
 @指代类("android.graphics.Bitmap")
 类 位图

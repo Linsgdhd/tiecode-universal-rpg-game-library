@@ -1,19 +1,5 @@
 类 场景实体v1d1 : 可绘制实体
-	变量 骨骼 : 支架容器
-	变量 位图 : 位图容器
-	变量 容器 : 场景v1d1?
-	事件 场景实体v1d1 : 初始化(data : JSON对象,scene : 场景v1d1)
-		容器 = scene
-	结束 事件
-	事件 场景实体v1d1 : 数据更新()
-		
-	结束 事件
-	事件 场景实体v1d1 : 绘制(canvas : 画布)
-		
-	结束 事件
-	事件 场景实体v1d1 : 销毁()
-		
-	结束 事件
+	
 结束 类
 
 类 场景交互事件
@@ -32,30 +18,31 @@
 		code container.add(#成员);
 	结束 方法
 	方法 删除(索引 : 整数)
-		code container.remove(#索引);
+		获取(索引).待删除 = 真
 	结束 方法
 	方法 获取(索引 : 整数) : 可绘制实体
 		code return container.get(#索引);
-	结束 方法
-	方法 查询指定id实体(实体id : 整数) : 可绘制实体
-		变量 rt : 可绘制实体
-		rt.实体id = -1
-		@code
-		for(#<可绘制实体> ent : container) {
-			if(ent.getId() == #实体id && ent.allowFetch()) {
-				return ent;
-			}
-		}
-		@end
-		返回 rt
 	结束 方法
 	方法 查询指定图层可绘制实体(图层 : 整数) : 可绘制实体容器
 		变量 rt : 可绘制实体容器
 		code for(#<可绘制实体> ent : container) { if(ent.getLayer() == #图层 && ent.allowDraw()) { #<rt.添加>(ent); }}
 		返回 rt
 	结束 方法
-	方法 更新数据()
-		code for(#<可绘制实体> ent : container) { ent.update(); }
+	方法 更新数据() : 图层标记
+		变量 rtv : 图层标记
+		@code
+		for(#<可绘制实体> ent : container) {
+			if(ent.awaitingDestruction()) {
+				container.remove(ent);
+			} else {
+				ent.update();
+			}
+		}
+		@end
+		返回 rtv
+	结束 方法
+	方法 绘制(canvas : 画布)
+		code for(#<可绘制实体> ent : container) { ent.draw(#canvas); }
 	结束 方法
 	属性读 长度() : 整数
 		code return container.size();
@@ -63,22 +50,15 @@
 结束 类
 
 类 可绘制实体
-	变量 实体id : 整数
-	变量 空间信息 : rl空间信息
 	变量 可访问 : 逻辑型
 	变量 可绘制 : 逻辑型
-	变量 容器 : 场景v1d1?
-	变量 附件 : 集合
+	变量 待删除 : 逻辑型
 	变量 启用碰撞 : 逻辑型
 	变量 启用重力 : 逻辑型
 	变量 图层 : 整数
-	变量 交互 : 场景交互事件
 	@code
 	public int getLayer() {
 		return #图层;
-	}
-	public int getId() {
-		return  #实体id;
 	}
 	public void update(){
 		#数据更新();
@@ -91,6 +71,9 @@
 	}
 	public boolean allowDraw() {
 		return #可绘制;
+	}
+	public boolean awaitingDestruction() {
+		return #待删除;
 	}
 	@end
 	// 创建时调用一次
@@ -159,7 +142,15 @@
 		col = data.取整数("x")
 		位置.x = data.取整数("x") * 容器.网格大小
 		位置.y = data.取整数("y") * 容器.网格大小
-		背景图片 = 位图对象.创建缩放位图(ic.数据管理.取位图(data.取文本("img")),ic.网格大小,ic.网格大小,假)
+		// 背景图片 = 位图对象.创建缩放位图(ic.数据管理.取位图(data.取文本("img")),ic.网格大小,ic.网格大小,真)
+		// 调试输出("img name : " + data.取文本("img"))
+		变量 temp : 位图对象 = ic.数据管理.取位图(data.取文本("img"))
+		// 背景图片 = 生成器.错误位图("资源不存在")
+		如果 temp == 空 则
+			背景图片 = 生成器.错误位图("资源不存在")
+		否则
+			背景图片 = 位图对象.创建缩放位图(temp,ic.网格大小,ic.网格大小,假)
+		结束 如果
 	结束 方法
 	@虚拟事件
 	方法 初始化补充(data : JSON对象)
@@ -199,8 +190,13 @@
 		调试输出("实体位图初始化...\n" + tempjil.到文本())
 		循环(i, 0, tempjil.长度)
 			// 调试输出(tempjil[i].到文本())
-			// 位图序列.添加(位图对象.创建缩放位图(ic.数据管理.取位图(tempjil.取文本(i)),ic.网格大小,ic.网格大小,真))
-			位图序列.添加(ic.数据管理.取位图(tempjil.取文本(i)))
+			变量 temp : 位图对象 = ic.数据管理.取位图(tempjil.取文本(i))
+			如果 temp == 空 则
+				位图序列.添加(生成器.错误位图("资源不存在"))
+			否则
+				// 位图序列.添加(位图对象.创建缩放位图(temp,ic.网格大小,ic.网格大小,真))
+				位图序列.添加(ic.数据管理.取位图(tempjil.取文本(i)))
+			结束 如果
 		结束 循环
 	结束 方法
 	方法 切换位图序列(data : JSON数组)
